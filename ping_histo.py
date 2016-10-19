@@ -8,6 +8,7 @@ import sys
 single_matcher = re.compile("(?P<bytes>\d+) bytes from (?P<IP>\d+.\d+.\d+.\d+): icmp_seq=(?P<sequence>\d+) ttl=(?P<ttl>\d+) time=(?P<time>\d+(.\d+)?) ms")
 # should match lines like this:
 # 64 bytes from 192.168.178.45: icmp_seq=2 ttl=64 time=103 ms
+dropped_matcher = re.compile("Request timeout for icmp_seq (\d+)")
 end_matcher = re.compile("rtt min/avg/max/mdev = (?P<min>\d+.\d+)/(?P<avg>\d+.\d+)/(?P<max>\d+.\d+)/(?P<mdev>\d+.\d+)")
 # should match lines like this:
 # rtt min/avg/max/mdev = 0.234/0.234/0.234/0.000 ms
@@ -42,6 +43,12 @@ def main():
                 time = float(match.group('time'))
                 times.append(time)
                 print(time)
+                continue
+            match = dropped_matcher.match(line)
+            if match:
+                if args.debug: print("Dropped packet")
+                times.append(-1)
+                print("-1")
                 continue
             match = end_matcher.match(line)
             if match:
